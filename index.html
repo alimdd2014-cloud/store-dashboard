@@ -10,30 +10,32 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
     body { font-family: 'Cairo', sans-serif; }
-    .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-16">
 
   <!-- شريط العنوان والإحصائيات -->
-  <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-4 mb-6">
+  <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 mb-6">
     <div class="max-w-4xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
           <i class="fa-solid fa-robot text-xl"></i>
         </div>
         <div>
-          <h1 class="text-lg font-bold">لوحة إدارة المنتجات</h1>
-          <p class="text-xs text-slate-400">نظام البوت والنشر التلقائي</p>
+          <h1 class="text-base font-bold">إدارة المنشورات الذكية</h1>
+          <p class="text-xs text-slate-400">نظام النشر الآلي للمجموعات</p>
         </div>
       </div>
 
-      <!-- بطاقة عدد المنشورات -->
-      <div class="glass px-4 py-2 rounded-2xl flex items-center gap-3 border border-emerald-500/30 bg-emerald-950/20">
-        <i class="fa-solid fa-layer-group text-emerald-400 text-lg"></i>
-        <div>
-          <div class="text-[10px] text-slate-400 leading-tight">المنتجات الجاهزة</div>
-          <div id="productCount" class="text-base font-extrabold text-emerald-400 leading-none">0</div>
+      <div class="flex items-center gap-2">
+        <div class="glass px-3 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 text-center">
+          <span class="text-[10px] text-slate-400 block">النشطة</span>
+          <span id="activeCount" class="text-sm font-extrabold text-emerald-400">0</span>
+        </div>
+        <div class="glass px-3 py-1.5 rounded-xl border border-slate-700 text-center">
+          <span class="text-[10px] text-slate-400 block">الكلي</span>
+          <span id="totalCount" class="text-sm font-extrabold text-slate-200">0</span>
         </div>
       </div>
     </div>
@@ -42,69 +44,192 @@
   <main class="max-w-4xl mx-auto px-4 space-y-6">
 
     <!-- نموذج إضافة منتج جديد -->
-    <section class="glass rounded-3xl p-6 shadow-2xl">
-      <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-blue-400">
-        <i class="fa-solid fa-circle-plus"></i> إضافة منتج للنشر
+    <section class="glass rounded-2xl p-5 shadow-2xl">
+      <h2 class="text-sm font-bold mb-3 flex items-center gap-2 text-blue-400">
+        <i class="fa-solid fa-circle-plus"></i> إضافة منتج جديد للقائمة
       </h2>
 
-      <form id="addForm" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">اسم المنتج</label>
-          <input type="text" id="addName" required placeholder="مثال: ساعة يد رجالية فاخرة"
-            class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+      <form id="addForm" class="space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">اسم المنتج</label>
+            <input type="text" id="addName" required placeholder="مثال: ساعة كلاسيك أنيقة"
+              class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">السعر</label>
+            <input type="text" id="addPrice" required placeholder="مثال: 25,000 دينار"
+              class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+          </div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">السعر</label>
-          <input type="text" id="addPrice" required placeholder="مثال: 25,000 دينار"
-            class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+          <label class="block text-xs font-medium text-slate-300 mb-1">وصف العرض</label>
+          <textarea id="addDesc" rows="2" placeholder="مقاومة للماء، جودة عالية، متوفر توصيل..."
+            class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500 resize-none"></textarea>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">وصف العرض والمميزات</label>
-          <textarea id="addDesc" rows="3" placeholder="مقاومة للماء، ضمان سنة، متوفر توصيل..."
-            class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">صورة المنتج</label>
+          <label class="block text-xs font-medium text-slate-300 mb-1">صورة المنتج</label>
           <input type="file" id="addImage" accept="image/*" required
-            class="block w-full text-xs text-slate-400 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600/20 file:text-blue-300 hover:file:bg-blue-600/30 file:cursor-pointer border border-slate-700/80 rounded-xl bg-slate-900/90 p-1" />
+            class="block w-full text-xs text-slate-400 file:ml-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600/20 file:text-blue-300 hover:file:bg-blue-600/30 file:cursor-pointer border border-slate-700 rounded-xl bg-slate-900/90 p-1" />
         </div>
 
         <button type="submit" id="submitBtn"
-          class="w-full bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white font-bold py-3 rounded-xl transition duration-200 shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 text-sm">
+          class="w-full bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 text-sm">
           <i class="fa-solid fa-cloud-arrow-up"></i>
-          <span>حفظ وجدولة للنشر</span>
+          <span>حفظ وجدولة للنشر التلقائي</span>
         </button>
       </form>
     </section>
 
     <!-- قائمة المنشورات الحالية -->
-    <section class="space-y-4">
+    <section class="space-y-3">
       <div class="flex items-center justify-between">
-        <h2 class="text-base font-bold flex items-center gap-2 text-slate-200">
-          <i class="fa-solid fa-box-archive text-slate-400"></i> قائمة المنشورات في البوت
+        <h2 class="text-sm font-bold flex items-center gap-2 text-slate-200">
+          <i class="fa-solid fa-layer-group text-slate-400"></i> قائمة المنشورات (من الأحدث للأقدم)
         </h2>
         <button onclick="loadProducts()" class="text-xs text-blue-400 hover:underline flex items-center gap-1">
           <i class="fa-solid fa-arrows-rotate"></i> تحديث
         </button>
       </div>
 
-      <div id="productsList" class="space-y-3">
-        <!-- المنتجات تظهر هنا تلقائياً -->
-      </div>
+      <div id="productsList" class="space-y-3"></div>
     </section>
   </main>
 
-  <!-- نافذة تعديل المنتج (Modal) -->
-  <div id="editModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="glass max-w-md w-full rounded-3xl p-6 border border-slate-700 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square text-amber-400"></i> تعديل المنتج
-        </h3>
-        <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+  <script>
+    const SUPABASE_URL = 'https://smgzsyeydoajeswbqmri.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Y3a2r5cC22SccCUXUcGcrg_Y9Em9-Oz';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function loadProducts() {
+      const container = document.getElementById('productsList');
+      container.innerHTML = '<div class="text-center text-xs text-slate-500 py-6">جاري التحميل...</div>';
+
+      const { data, error } = await supabaseClient
+        .from('products')
+        .select('*')
+        .order('id', { ascending: false });
+
+      if (error) {
+        container.innerHTML = '<div class="text-red-400 text-xs text-center">تعذر جلب البيانات</div>';
+        return;
+      }
+
+      document.getElementById('totalCount').innerText = data.length;
+      document.getElementById('activeCount').innerText = data.filter(p => p.is_active !== false).length;
+
+      if (data.length === 0) {
+        container.innerHTML = '<div class="glass p-6 rounded-2xl text-center text-xs text-slate-400">لا توجد منتجات مضافة حالياً.</div>';
+        return;
+      }
+
+      container.innerHTML = data.map(item => {
+        const isActive = item.is_active !== false;
+        return `
+        <div class="glass rounded-2xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border ${isActive ? 'border-slate-800' : 'border-red-950/40 opacity-70'} transition">
+          <div class="flex items-center gap-3 overflow-hidden w-full sm:w-auto">
+            <img src="${item.image_url}" class="w-16 h-16 rounded-xl object-cover bg-slate-800 border border-slate-700 flex-shrink-0" />
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-sm text-slate-100 truncate">${item.name}</h4>
+                <span class="text-[10px] px-2 py-0.5 rounded-full ${isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700 text-slate-400'}">
+                  ${isActive ? 'نشط' : 'معطّل'}
+                </span>
+              </div>
+              <p class="text-xs text-emerald-400 font-semibold mt-0.5">${item.price}</p>
+              <p class="text-[11px] text-slate-400 truncate max-w-xs">${item.description || 'بدون وصف'}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 self-end sm:self-center">
+            <!-- زر النشر الفوري المباشر -->
+            <button onclick="publishInstant(${item.id}, '${escapeHtml(item.name)}')" title="نشر فوري الآن في المجموعة"
+              class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 text-xs font-semibold flex items-center gap-1 border border-amber-500/30 transition">
+              <i class="fa-solid fa-bolt"></i> نشر الآن
+            </button>
+
+            <!-- زر تبديل حالة التفعيل -->
+            <button onclick="toggleActive(${item.id}, ${isActive})" title="${isActive ? 'تعطيل من النشر' : 'تفعيل النشر'}"
+              class="w-8 h-8 rounded-xl ${isActive ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'} flex items-center justify-center text-xs transition border border-slate-700/50">
+              <i class="fa-solid ${isActive ? 'fa-toggle-on' : 'fa-toggle-off'} text-base"></i>
+            </button>
+
+            <!-- زر الحذف -->
+            <button onclick="deleteProduct(${item.id})"
+              class="w-8 h-8 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center text-xs transition border border-red-500/20">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `}).join('');
+    }
+
+    async function toggleActive(id, currentStatus) {
+      await supabaseClient.from('products').update({ is_active: !currentStatus }).eq('id', id);
+      await loadProducts();
+    }
+
+    async function publishInstant(id, name) {
+      if (!confirm(`هل تريد نشر [${name}] فوراً في مجموعة الواتساب؟`)) return;
+      await supabaseClient.from('products').update({ post_now: true }).eq('id', id);
+      alert(`⚡ تم إرسال أمر النشر المباشر للبوت! سيتم نشره خلال ثوانٍ.`);
+    }
+
+    async function uploadImage(file) {
+      const ext = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${ext}`;
+      const { error } = await supabaseClient.storage.from('products').upload(fileName, file);
+      if (error) throw error;
+      const { data } = supabaseClient.storage.from('products').getPublicUrl(fileName);
+      return data.publicUrl;
+    }
+
+    document.getElementById('addForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+
+      try {
+        const file = document.getElementById('addImage').files[0];
+        const imageUrl = await uploadImage(file);
+
+        const { error } = await supabaseClient.from('products').insert([{
+          name: document.getElementById('addName').value.trim(),
+          price: document.getElementById('addPrice').value.trim(),
+          description: document.getElementById('addDesc').value.trim(),
+          image_url: imageUrl,
+          is_active: true,
+          post_now: false
+        }]);
+
+        if (error) throw error;
+        document.getElementById('addForm').reset();
+        await loadProducts();
+      } catch (err) {
+        alert('حدث خطأ أثناء الحفظ: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>حفظ وجدولة للنشر التلقائي</span>';
+      }
+    });
+
+    async function deleteProduct(id) {
+      if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+      await supabaseClient.from('products').delete().eq('id', id);
+      await loadProducts();
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
       </div>
 
       <form id="editForm" class="space-y-3">
