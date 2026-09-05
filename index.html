@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة إدارة المنتجات</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #fff; padding: 20px; display: flex; justify-content: center; }
+    .card { background: #1e293b; padding: 24px; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    h2 { margin-top: 0; text-align: center; color: #38bdf8; }
+    label { display: block; margin-top: 12px; margin-bottom: 6px; font-size: 14px; color: #94a3b8; }
+    input, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box; font-size: 15px; }
+    input[type="file"] { padding: 8px; background: transparent; border: 1px dashed #475569; }
+    button { width: 100%; margin-top: 20px; padding: 14px; border: none; border-radius: 8px; background: #2563eb; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #1d4ed8; }
+    #status { margin-top: 15px; text-align: center; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>إضافة منتج جديد 🛍️</h2>
+  
+  <label>اسم المنتج</label>
+  <input type="text" id="name" placeholder="مثلاً: ساعة يد أنيقة" required>
+
+  <label>السعر</label>
+  <input type="text" id="price" placeholder="مثلاً: 25,000 دينار" required>
+
+  <label>وصف العرض</label>
+  <textarea id="description" rows="3" placeholder="أدخل تفاصيل ومميزات العرض..."></textarea>
+
+  <label>صورة المنتج</label>
+  <input type="file" id="image" accept="image/*" required>
+
+  <button onclick="uploadProduct()" id="btn">حفظ ونشر في النظام 🚀</button>
+  <div id="status"></div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://smgzsyeydoajeswbqmri.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_Y3a2r5cC22SccCUXUcGcrg_Y9Em9-Oz";
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function uploadProduct() {
+    const name = document.getElementById('name').value.trim();
+    const price = document.getElementById('price').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const fileInput = document.getElementById('image');
+    const status = document.getElementById('status');
+    const btn = document.getElementById('btn');
+
+    if (!name || !price || !fileInput.files[0]) {
+      status.style.color = '#f87171';
+      status.innerText = 'يرجى ملء الحقول واختيار صورة!';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = 'جاري الرفع... ⏳';
+    status.innerText = '';
+
+    try {
+      const file = fileInput.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+
+      // 1. رفع الصورة إلى الحاوية
+      const { data: storageData, error: storageError } = await client.storage
+        .from('products')
+        .upload(fileName, file);
+
+      if (storageError) throw storageError;
+
+      // 2. جلب الرابط المباشر
+      const { data: publicUrlData } = client.storage
+        .from('products')
+        .getPublicUrl(fileName);
+
+      const imageUrl = publicUrlData.publicUrl;
+
+      // 3. إضافة البيانات إلى الجدول
+      const { error: dbError } = await client
+        .from('products')
+        .insert([{ name, price, description, image_url: imageUrl }]);
+
+      if (dbError) throw dbError;
+
+      status.style.color = '#4ade80';
+      status.innerText = '✅ تم حفظ المنتج بنجاح!';
+      
+      document.getElementById('name').value = '';
+      document.getElementById('price').value = '';
+      document.getElementById('description').value = '';
+      fileInput.value = '';
+
+    } catch (err) {
+      status.style.color = '#f87171';
+      status.innerText = '❌ حدث خطأ: ' + (err.message || 'فشل الرفع');
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'حفظ ونشر في النظام 🚀';
+    }
+  }
+</script>
+
+</body>
+</html>
+
