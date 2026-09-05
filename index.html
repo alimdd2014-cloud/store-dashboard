@@ -1,110 +1,295 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة إدارة المنتجات</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة التحكم بالمنتجات والنشر</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    body { font-family: system-ui, sans-serif; background: #0f172a; color: #fff; padding: 20px; display: flex; justify-content: center; }
-    .card { background: #1e293b; padding: 24px; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-    h2 { margin-top: 0; text-align: center; color: #38bdf8; }
-    label { display: block; margin-top: 12px; margin-bottom: 6px; font-size: 14px; color: #94a3b8; }
-    input, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box; font-size: 15px; }
-    input[type="file"] { padding: 8px; background: transparent; border: 1px dashed #475569; }
-    button { width: 100%; margin-top: 20px; padding: 14px; border: none; border-radius: 8px; background: #2563eb; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    button:hover { background: #1d4ed8; }
-    #status { margin-top: 15px; text-align: center; font-size: 14px; }
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+    body { font-family: 'Cairo', sans-serif; }
+    .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
   </style>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-16">
 
-<div class="card">
-  <h2>إضافة منتج جديد 🛍️</h2>
-  
-  <label>اسم المنتج</label>
-  <input type="text" id="name" placeholder="مثلاً: ساعة يد أنيقة" required>
+  <!-- شريط العنوان والإحصائيات -->
+  <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-4 mb-6">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+          <i class="fa-solid fa-robot text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold">لوحة إدارة المنتجات</h1>
+          <p class="text-xs text-slate-400">نظام البوت والنشر التلقائي</p>
+        </div>
+      </div>
 
-  <label>السعر</label>
-  <input type="text" id="price" placeholder="مثلاً: 25,000 دينار" required>
+      <!-- بطاقة عدد المنشورات -->
+      <div class="glass px-4 py-2 rounded-2xl flex items-center gap-3 border border-emerald-500/30 bg-emerald-950/20">
+        <i class="fa-solid fa-layer-group text-emerald-400 text-lg"></i>
+        <div>
+          <div class="text-[10px] text-slate-400 leading-tight">المنتجات الجاهزة</div>
+          <div id="productCount" class="text-base font-extrabold text-emerald-400 leading-none">0</div>
+        </div>
+      </div>
+    </div>
+  </header>
 
-  <label>وصف العرض</label>
-  <textarea id="description" rows="3" placeholder="أدخل تفاصيل ومميزات العرض..."></textarea>
+  <main class="max-w-4xl mx-auto px-4 space-y-6">
 
-  <label>صورة المنتج</label>
-  <input type="file" id="image" accept="image/*" required>
+    <!-- نموذج إضافة منتج جديد -->
+    <section class="glass rounded-3xl p-6 shadow-2xl">
+      <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-blue-400">
+        <i class="fa-solid fa-circle-plus"></i> إضافة منتج للنشر
+      </h2>
 
-  <button onclick="uploadProduct()" id="btn">حفظ ونشر في النظام 🚀</button>
-  <div id="status"></div>
-</div>
+      <form id="addForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">اسم المنتج</label>
+          <input type="text" id="addName" required placeholder="مثال: ساعة يد رجالية فاخرة"
+            class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+        </div>
 
-<script>
-  const SUPABASE_URL = "https://smgzsyeydoajeswbqmri.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_Y3a2r5cC22SccCUXUcGcrg_Y9Em9-Oz";
-  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">السعر</label>
+          <input type="text" id="addPrice" required placeholder="مثال: 25,000 دينار"
+            class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+        </div>
 
-  async function uploadProduct() {
-    const name = document.getElementById('name').value.trim();
-    const price = document.getElementById('price').value.trim();
-    const description = document.getElementById('description').value.trim();
-    const fileInput = document.getElementById('image');
-    const status = document.getElementById('status');
-    const btn = document.getElementById('btn');
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">وصف العرض والمميزات</label>
+          <textarea id="addDesc" rows="3" placeholder="مقاومة للماء، ضمان سنة، متوفر توصيل..."
+            class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
+        </div>
 
-    if (!name || !price || !fileInput.files[0]) {
-      status.style.color = '#f87171';
-      status.innerText = 'يرجى ملء الحقول واختيار صورة!';
-      return;
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">صورة المنتج</label>
+          <input type="file" id="addImage" accept="image/*" required
+            class="block w-full text-xs text-slate-400 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600/20 file:text-blue-300 hover:file:bg-blue-600/30 file:cursor-pointer border border-slate-700/80 rounded-xl bg-slate-900/90 p-1" />
+        </div>
+
+        <button type="submit" id="submitBtn"
+          class="w-full bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white font-bold py-3 rounded-xl transition duration-200 shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 text-sm">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>حفظ وجدولة للنشر</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- قائمة المنشورات الحالية -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold flex items-center gap-2 text-slate-200">
+          <i class="fa-solid fa-box-archive text-slate-400"></i> قائمة المنشورات في البوت
+        </h2>
+        <button onclick="loadProducts()" class="text-xs text-blue-400 hover:underline flex items-center gap-1">
+          <i class="fa-solid fa-arrows-rotate"></i> تحديث
+        </button>
+      </div>
+
+      <div id="productsList" class="space-y-3">
+        <!-- المنتجات تظهر هنا تلقائياً -->
+      </div>
+    </section>
+  </main>
+
+  <!-- نافذة تعديل المنتج (Modal) -->
+  <div id="editModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass max-w-md w-full rounded-3xl p-6 border border-slate-700 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-amber-400"></i> تعديل المنتج
+        </h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <form id="editForm" class="space-y-3">
+        <input type="hidden" id="editId" />
+        <input type="hidden" id="editOldImageUrl" />
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">اسم المنتج</label>
+          <input type="text" id="editName" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">السعر</label>
+          <input type="text" id="editPrice" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">الوصف</label>
+          <textarea id="editDesc" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">تغيير الصورة (اختياري)</label>
+          <input type="file" id="editImage" accept="image/*"
+            class="block w-full text-xs text-slate-400 file:ml-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-800 file:text-slate-300 border border-slate-700 rounded-xl bg-slate-900 p-1" />
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="submit" id="editSaveBtn" class="flex-1 bg-amber-600 hover:bg-amber-500 py-2.5 rounded-xl font-bold text-xs">
+            حفظ التعديلات
+          </button>
+          <button type="button" onclick="closeEditModal()" class="px-4 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://smgzsyeydoajeswbqmri.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Y3a2r5cC22SccCUXUcGcrg_Y9Em9-Oz';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function loadProducts() {
+      const container = document.getElementById('productsList');
+      container.innerHTML = '<div class="text-center text-xs text-slate-500 py-8">جاري التحميل...</div>';
+
+      const { data, error } = await supabaseClient.from('products').select('*').order('id', { ascending: false });
+
+      if (error) {
+        container.innerHTML = '<div class="text-red-400 text-xs text-center">تعذر جلب المنتجات</div>';
+        return;
+      }
+
+      document.getElementById('productCount').innerText = data.length;
+
+      if (data.length === 0) {
+        container.innerHTML = '<div class="glass p-8 rounded-2xl text-center text-xs text-slate-400">لا توجد منتجات مجدولة حالياً.</div>';
+        return;
+      }
+
+      container.innerHTML = data.map(item => `
+        <div class="glass rounded-2xl p-3 flex items-center justify-between gap-3 border border-slate-800 hover:border-slate-700 transition">
+          <div class="flex items-center gap-3 overflow-hidden">
+            <img src="${item.image_url}" class="w-14 h-14 rounded-xl object-cover bg-slate-800 border border-slate-700 flex-shrink-0" onerror="this.src='https://via.placeholder.com/150'" />
+            <div class="min-w-0">
+              <h4 class="font-bold text-sm text-slate-100 truncate">${item.name}</h4>
+              <p class="text-xs text-emerald-400 font-semibold">${item.price}</p>
+              <p class="text-[11px] text-slate-400 truncate max-w-xs">${item.description || 'بدون وصف'}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button onclick="openEditModal(${item.id}, '${escapeHtml(item.name)}', '${escapeHtml(item.price)}', '${escapeHtml(item.description || '')}', '${item.image_url}')"
+              class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 flex items-center justify-center text-xs transition">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="deleteProduct(${item.id})"
+              class="w-8 h-8 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center text-xs transition">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
     }
 
-    btn.disabled = true;
-    btn.innerText = 'جاري الرفع... ⏳';
-    status.innerText = '';
-
-    try {
-      const file = fileInput.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-
-      // 1. رفع الصورة إلى الحاوية
-      const { data: storageData, error: storageError } = await client.storage
-        .from('products')
-        .upload(fileName, file);
-
-      if (storageError) throw storageError;
-
-      // 2. جلب الرابط المباشر
-      const { data: publicUrlData } = client.storage
-        .from('products')
-        .getPublicUrl(fileName);
-
-      const imageUrl = publicUrlData.publicUrl;
-
-      // 3. إضافة البيانات إلى الجدول
-      const { error: dbError } = await client
-        .from('products')
-        .insert([{ name, price, description, image_url: imageUrl }]);
-
-      if (dbError) throw dbError;
-
-      status.style.color = '#4ade80';
-      status.innerText = '✅ تم حفظ المنتج بنجاح!';
-      
-      document.getElementById('name').value = '';
-      document.getElementById('price').value = '';
-      document.getElementById('description').value = '';
-      fileInput.value = '';
-
-    } catch (err) {
-      status.style.color = '#f87171';
-      status.innerText = '❌ حدث خطأ: ' + (err.message || 'فشل الرفع');
-    } finally {
-      btn.disabled = false;
-      btn.innerText = 'حفظ ونشر في النظام 🚀';
+    async function uploadImage(file) {
+      const ext = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${ext}`;
+      const { error } = await supabaseClient.storage.from('products').upload(fileName, file);
+      if (error) throw error;
+      const { data } = supabaseClient.storage.from('products').getPublicUrl(fileName);
+      return data.publicUrl;
     }
-  }
-</script>
 
+    document.getElementById('addForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+
+      try {
+        const file = document.getElementById('addImage').files[0];
+        const imageUrl = await uploadImage(file);
+
+        const { error } = await supabaseClient.from('products').insert([{
+          name: document.getElementById('addName').value.trim(),
+          price: document.getElementById('addPrice').value.trim(),
+          description: document.getElementById('addDesc').value.trim(),
+          image_url: imageUrl
+        }]);
+
+        if (error) throw error;
+        document.getElementById('addForm').reset();
+        await loadProducts();
+      } catch (err) {
+        alert('حدث خطأ أثناء الحفظ: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>حفظ وجدولة للنشر</span>';
+      }
+    });
+
+    function openEditModal(id, name, price, desc, imageUrl) {
+      document.getElementById('editId').value = id;
+      document.getElementById('editName').value = name;
+      document.getElementById('editPrice').value = price;
+      document.getElementById('editDesc').value = desc;
+      document.getElementById('editOldImageUrl').value = imageUrl;
+      document.getElementById('editImage').value = '';
+      document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.add('hidden');
+    }
+
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('editSaveBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'جاري التحديث...';
+
+      try {
+        const id = document.getElementById('editId').value;
+        const file = document.getElementById('editImage').files[0];
+        let imageUrl = document.getElementById('editOldImageUrl').value;
+
+        if (file) {
+          imageUrl = await uploadImage(file);
+        }
+
+        const { error } = await supabaseClient.from('products').update({
+          name: document.getElementById('editName').value.trim(),
+          price: document.getElementById('editPrice').value.trim(),
+          description: document.getElementById('editDesc').value.trim(),
+          image_url: imageUrl
+        }).eq('id', id);
+
+        if (error) throw error;
+        closeEditModal();
+        await loadProducts();
+      } catch (err) {
+        alert('خطأ أثناء التعديل: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'حفظ التعديلات';
+      }
+    });
+
+    async function deleteProduct(id) {
+      if (!confirm('هل أنت متأكد من حذف هذا المنتج من قائمة النشر؟')) return;
+      const { error } = await supabaseClient.from('products').delete().eq('id', id);
+      if (error) alert('خطأ في الحذف: ' + error.message);
+      else await loadProducts();
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
 </body>
 </html>
 
